@@ -8,7 +8,7 @@ from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 
 
-class Person:
+class Wallet:
     def __init__(self, file):
         self.key, self.money, self.signatures = self.import_private_from_file(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8)
@@ -92,20 +92,41 @@ class Person:
         return key, money, signatures
 
 
+class Block:
+    def __init__(self, index, timestamp, transactions, proof, previuos_hash):
+        self.index = index
+        self.timestamp = timestamp
+        self.transactions = transactions
+        self.proof = proof
+        self.previuos_hash = previuos_hash
+        self.block = self.format_block()
+
+    def format_block(self):
+        block = {
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'transactions': self.transactions,
+            'proof': self.proof,
+            'previous_hash': self.previuos_hash
+        }
+        return block
+
+
 class Blockchain:
-    def __init__(self):
+    def __init__(self, file='data_file'):
         self.chain = []
         self.current_transactions = []
         self.miner_transactions = []
         self.block_size = 2
-        if not(os.path.exists(f"./data_file.json")):
+        if not(os.path.exists(f"./{file}.json")):
             self.genesis_block = self.new_block(0, "30/09 G10 CH41N released.")
             print(self.genesis_block['previous_hash'], "\n")
             self.chain.append(self.genesis_block)
-            self.export_chain_to_file()
+            self.export_chain_to_file(file)
         else:
-            self.chain_import(self.import_chain_from_file())
+            self.chain_import(self.import_chain_from_file(file))
         self.miner_queue = []
+        self.miner_reward = 10
 
     def chain_import(self, chain):
         self.chain = chain
@@ -117,13 +138,8 @@ class Blockchain:
         if len(self.chain) > 0:
             current_transactions.append(self.miner_transactions.pop(0))
 
-        block = {
-            'index': len(self.chain),
-            'timestamp': str(datetime.datetime.now()),
-            'transactions': current_transactions,
-            'proof': proof,
-            'previous_hash': previous_hash
-        }
+        block = Block(len(self.chain), str(datetime.datetime.now()), current_transactions, proof, previous_hash).format_block()
+
         return block
 
     def create_block(self, proof, previous_hash):
@@ -183,8 +199,8 @@ class Blockchain:
 
     # Files
     @staticmethod
-    def import_chain_from_file():
-        with open("data_file.json", "r") as read_file:
+    def import_chain_from_file(file):
+        with open(f"{file}.json", "r") as read_file:
             line = read_file.read()
             if len(line) > 0:
                 data = json.loads(line)
@@ -192,9 +208,9 @@ class Blockchain:
                 data = ""
         return data
 
-    def export_chain_to_file(self):
+    def export_chain_to_file(self, file):
         if self.chain_valid(self.chain):
-            with open("data_file.json", "w") as write_file:
+            with open(f"{file}.json", "w") as write_file:
                 json.dump(self.chain, write_file, indent=4)
 
     # Methods
@@ -267,14 +283,12 @@ class Blockchain:
         else:
             return "\nNo miner available." if len(self.miner_queue) == 0 else ""
 
-        reward = 10
-
         self.new_payout(
             sender=0,
             recipient=miner.address.decode(),
-            amount=reward,
+            amount=self.miner_reward,
         )
-        miner.add_money(reward)
+        miner.add_money(self.miner_reward)
 
         previous_block = self.last_block
         previous_proof = previous_block['proof']
