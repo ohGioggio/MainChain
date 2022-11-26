@@ -195,7 +195,7 @@ class Blockchain:
     def export_chain_to_file(self):
         if self.chain_valid(self.chain):
             with open("data_file.json", "w") as write_file:
-                json.dump(self.chain, write_file)
+                json.dump(self.chain, write_file, indent=4)
 
     # Methods
     @staticmethod
