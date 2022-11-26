@@ -3,8 +3,8 @@ import base64
 import datetime
 import json
 import os
-
-
+from Crypto.Hash import SHA512
+from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 
 
@@ -146,6 +146,22 @@ class Blockchain:
         })
         return ""
 
+    # Signatures
+    def sign_message(self, k, msg):
+        hashb = SHA512.new(msg)
+        signature = pkcs1_15.new(k).sign(hashb)
+        return signature
+
+    def verify_message(self, k, msg, signature):
+        hashb = SHA512.new(msg)
+        try:
+            pkcs1_15.new(k).verify(hashb, signature)
+            result = "Signature is valid."
+        except ValueError:
+            result = "Signature is invalid."
+        return result
+
+    # Files
     @staticmethod
     def import_chain_from_file():
         with open("data_file.json", "r") as read_file:
