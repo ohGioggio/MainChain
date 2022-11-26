@@ -10,10 +10,9 @@ from Crypto.PublicKey import RSA
 
 class Person:
     def __init__(self, file):
-        self.key, self.money = self.import_private_from_file(file)
+        self.key, self.money, self.signatures = self.import_private_from_file(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8)
         self.address = self.get_address(self.pubkey)
-        self.signatures = []
         self.update_info_file(file)
 
     # Payments
@@ -32,7 +31,7 @@ class Person:
             'recipient': receiver.address.decode(),
             'amount': money
         }
-        if self.check_balance(-1 * money):
+        if self.check_balance(-1 * money) and money >= 0:
             self.add_money(-1 * money)
             receiver.add_money(money)
             return blockchain.create_transaction(value)
@@ -40,10 +39,10 @@ class Person:
             return False
 
     def update_info_file(self, file):
-        info = {'address': self.address.decode(), 'public': self.pubkey.decode(), 'balance': self.money}
+        info = {'address': self.address.decode(), 'public': self.pubkey.decode(), 'balance': self.money, 'signatures': self.signatures}
         with open(f"{file}.json", "w+") as write_file:
             if json.dumps(info) != write_file.read():
-                json.dump(info, write_file)
+                json.dump(info, write_file, indent=4)
 
     def new_signature(self, msg, signature, signer):
         sign = {'Message': msg, 'Signature': signature, 'Signer': signer}
@@ -74,8 +73,10 @@ class Person:
 
     def import_private_from_file(self, file):
         money = 0
+        signatures = []
         if not(os.path.exists(f"./{file}.pem")):
             key = RSA.generate(3072)
+            self.key = key
             self.export_private_key(file)
         else:
             with open(f"{file}.pem", mode='rb') as privatefile:
@@ -86,8 +87,9 @@ class Person:
                     if len(line) > 0:
                         data = json.loads(line)
                         money = data['balance']
+                        signatures = data['signatures']
             key = RSA.import_key(privkey)
-        return key, money
+        return key, money, signatures
 
 
 class Blockchain:
@@ -100,6 +102,7 @@ class Blockchain:
             self.genesis_block = self.new_block(0, "30/09 G10 CH41N released.")
             print(self.genesis_block['previous_hash'], "\n")
             self.chain.append(self.genesis_block)
+            self.export_chain_to_file()
         else:
             self.chain_import(self.import_chain_from_file())
         self.miner_queue = []
@@ -289,6 +292,3 @@ class Blockchain:
         }
 
         return '\n' + response['message'] + str(response['index'])
-
-
-# blockchain = Blockchain()
