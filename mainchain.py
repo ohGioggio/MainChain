@@ -16,6 +16,7 @@ class Person:
         self.signatures = []
         self.update_info_file(file)
 
+    # Payments
     def resume(self):
         return f"{self.address.decode()} owns {self.money} $G10"
 
@@ -24,6 +25,19 @@ class Person:
 
     def check_balance(self, value):
         return self.money + value >= 0
+
+    def new_payment(self, blockchain, receiver, money):
+        value = {
+            'sender': self.address.decode(),
+            'recipient': receiver.address.decode(),
+            'amount': money
+        }
+        if self.check_balance(-1 * money):
+            self.add_money(-1 * money)
+            receiver.add_money(money)
+            return blockchain.create_transaction(value)
+        else:
+            return False
 
     def update_info_file(self, file):
         info = {'address': self.address.decode(), 'public': self.pubkey.decode(), 'balance': self.money}
@@ -51,6 +65,7 @@ class Person:
         result_address = base64.b64encode(bin_addr)
         return result_address
 
+    # Files
     def export_private_key(self, file):
         private_key = self.key.export_key(pkcs=8)
         file_out = open(f"{file}.pem", "wb")
@@ -147,12 +162,14 @@ class Blockchain:
         return ""
 
     # Signatures
-    def sign_message(self, k, msg):
+    @staticmethod
+    def sign_message(k, msg):
         hashb = SHA512.new(msg)
         signature = pkcs1_15.new(k).sign(hashb)
         return signature
 
-    def verify_message(self, k, msg, signature):
+    @staticmethod
+    def verify_message(k, msg, signature):
         hashb = SHA512.new(msg)
         try:
             pkcs1_15.new(k).verify(hashb, signature)
