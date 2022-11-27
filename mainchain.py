@@ -93,12 +93,12 @@ class Wallet:
 
 
 class Block:
-    def __init__(self, index, timestamp, transactions, proof, previuos_hash):
+    def __init__(self, index, timestamp, transactions, proof, previous_hash):
         self.index = index
         self.timestamp = timestamp
         self.transactions = transactions
         self.proof = proof
-        self.previuos_hash = previuos_hash
+        self.previous_hash = previous_hash
         self.block = self.format_block()
 
     def format_block(self):
@@ -107,7 +107,7 @@ class Block:
             'timestamp': self.timestamp,
             'transactions': self.transactions,
             'proof': self.proof,
-            'previous_hash': self.previuos_hash
+            'previous_hash': self.previous_hash
         }
         return block
 
