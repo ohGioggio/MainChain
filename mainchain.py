@@ -294,7 +294,6 @@ class Blockchain:
         previous_block = self.last_block
         previous_proof = previous_block['proof']
         proof = self.proof_of_work(previous_proof)
-
         previous_hash = self.hash(previous_block)
 
         nblock = self.create_block(proof, previous_hash, validator)
