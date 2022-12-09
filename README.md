@@ -44,21 +44,21 @@ A blockchain project that is capable of handling:
 
 
     Example:
-    {
-      "address": "ADk7WW9do9IqAnS1dW9KHgI4sNuQ20FiLA==",
-      "public": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEArLJkxujF6kijPptkKF66\ndkniA9wNgbFO3u48EAVgYX+eFnLACxxwrDJwFBxNOVqt6EepKykx/ER7EpqUilT/\ngcXGrahurktxbD272i1hi7aeB/BDAv8OPeBpM+shBiqhU5bzjsUcOjkVGoj1AJuP\ngzarj2E+9pxjet4O0vcRyk2K6H6NVGwBsKnxPmNdjKaOCO76sQJ352dv1KW4SC/f\nBCqPZvpyYVHymcUcrnmtaMclytuDsXEe/Z6d6W26xX9/nloiBQDbili+PPQEOlDe\nTlNWOneCBw2zX+vsWVJnlajKIgBqkJ14+yIO0mQomlLbPEsDZQdEU0PNDabo9M77\nXq6tmx+w5xAg26ual/hfHzkXhMiE3AmW0Px7SR1SqMVsKUs4oUdDfmwbnK62p7fD\ncgZCZORT85hArL285+/FXjEXwtg9svt6UHHTt+9/VsyC0R87nqKeKGKYjmy216Ch\nat4K2T9MZM9oOxmQPzRPVdWnQ1U/hrQH6/TM3LXMpyIRAgMBAAE=\n-----END PUBLIC KEY-----",
-      "balance": 360,
-      "signatures": [
         {
-          "Message": {
-            "Type": "Subscription",
-            "Duration": "2 months"
-          },
-          "Signature": "7f2cfacd64eec951feb9cb7d2e17e0614f9928c0a03ebec99dcddfe62099ec6820d9a35cb73a323ab54c3597a6b42c0f6122ad8e34b6f6247a45fb9b3514686fbee5efa18dd09e4fa4cee488b541ebb49ba66e3e55022d69736a59ee5811266508fabdf2ac595a37bab765b7138c1ce610cbd6116756dc83244e27be29b67a93f68a8b055c3c72cac414eaa192f0291d60bf6a8b01a0f0d0b4d367266b02606549a1dfe17c1fba3fecf7ee8066c78082bc94712e35cf300b4520195cc0d12e070ee0d8ac43b0941cf35a5935a22d3461e892ed4a1d6942079ef4daea0d4c358ebe8a43f10b8d2c8428519a70395e74fcbb48d0761e90244fa6cffea78f6b52f4793572db4b209b877a555bc875138f3a6655e84f4435742007bc782beb1bb73909fbbb5441875dc2826c5df584f52a5f86eca9ff189ea2ae40c920eb56cc5543d72fbe9fb34052734098e11384136ef5d3b880830b0669e1789663f7da92db59502367e0eb68d679273a773a7497dc06f5b2ca9cc6bf3e666a487b0fbfae8922",
-          "Signer": "b'-----BEGIN PUBLIC KEY-----\\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAnjf0YEDGw68XdkaZVg5z\\n8aIQ/QKgK5Apmy4UTQcljtoWpRzOtAqZbmyAyPluT1kmDhs6B3M85EOkgaB/Rycw\\nlpBfccpCbUz1HSr8yQ646yUzbpE1/vwg/SxbtzAGQsZGDFqTDom22IoVuO/Fm6lk\\nKlgBlMCuiDiLi77XeZF+KY/3Q2W9HCIJ4dDxdNH8swbTRcP1my7PXKuQmbjTIKd2\\nsuXQjg7xx6xckY6fA/U7isO4GVHFVlQqU1BAVZ34tkW5xznAiAPWsWaUq88LKUtX\\n2Rm++HFqGhjrkhG5XUqF2jrrEolwV8/NlujNq5fls2mv4aZVXB+jRnve5zsNmvHX\\nz1ThNhI3zy8NxaVtW+zXscheveFNDl8jUXk06PezWWHXz00l3UhVPnKO9WTJo8C4\\n21FcQUZateQm7pTjKsfLDv07adSthtUHEaYsMzvKt9Y9eIbmjJU4ALK+lsMZ4ONS\\nIRhEDiUhvS5/dVvmehvBoHLKhdt5qOFJ7LzldMP9sDzpAgMBAAE=\\n-----END PUBLIC KEY-----'"
+          "address": "ADk7WW9do9IqAnS1dW9KHgI4sNuQ20FiLA==",
+          "public": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEArLJkxujF6kijPptkKF66\ndkniA9wNgbFO3u48EAVgYX+eFnLACxxwrDJwFBxNOVqt6EepKykx/ER7EpqUilT/\ngcXGrahurktxbD272i1hi7aeB/BDAv8OPeBpM+shBiqhU5bzjsUcOjkVGoj1AJuP\ngzarj2E+9pxjet4O0vcRyk2K6H6NVGwBsKnxPmNdjKaOCO76sQJ352dv1KW4SC/f\nBCqPZvpyYVHymcUcrnmtaMclytuDsXEe/Z6d6W26xX9/nloiBQDbili+PPQEOlDe\nTlNWOneCBw2zX+vsWVJnlajKIgBqkJ14+yIO0mQomlLbPEsDZQdEU0PNDabo9M77\nXq6tmx+w5xAg26ual/hfHzkXhMiE3AmW0Px7SR1SqMVsKUs4oUdDfmwbnK62p7fD\ncgZCZORT85hArL285+/FXjEXwtg9svt6UHHTt+9/VsyC0R87nqKeKGKYjmy216Ch\nat4K2T9MZM9oOxmQPzRPVdWnQ1U/hrQH6/TM3LXMpyIRAgMBAAE=\n-----END PUBLIC KEY-----",
+          "balance": 360,
+          "signatures": [
+            {
+              "Message": {
+                "Type": "Subscription",
+                "Duration": "2 months"
+              },
+              "Signature": "7f2cfacd64eec951feb9cb7d2e17e0614f9928c0a03ebec99dcddfe62099ec6820d9a35cb73a323ab54c3597a6b42c0f6122ad8e34b6f6247a45fb9b3514686fbee5efa18dd09e4fa4cee488b541ebb49ba66e3e55022d69736a59ee5811266508fabdf2ac595a37bab765b7138c1ce610cbd6116756dc83244e27be29b67a93f68a8b055c3c72cac414eaa192f0291d60bf6a8b01a0f0d0b4d367266b02606549a1dfe17c1fba3fecf7ee8066c78082bc94712e35cf300b4520195cc0d12e070ee0d8ac43b0941cf35a5935a22d3461e892ed4a1d6942079ef4daea0d4c358ebe8a43f10b8d2c8428519a70395e74fcbb48d0761e90244fa6cffea78f6b52f4793572db4b209b877a555bc875138f3a6655e84f4435742007bc782beb1bb73909fbbb5441875dc2826c5df584f52a5f86eca9ff189ea2ae40c920eb56cc5543d72fbe9fb34052734098e11384136ef5d3b880830b0669e1789663f7da92db59502367e0eb68d679273a773a7497dc06f5b2ca9cc6bf3e666a487b0fbfae8922",
+              "Signer": "b'-----BEGIN PUBLIC KEY-----\\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAnjf0YEDGw68XdkaZVg5z\\n8aIQ/QKgK5Apmy4UTQcljtoWpRzOtAqZbmyAyPluT1kmDhs6B3M85EOkgaB/Rycw\\nlpBfccpCbUz1HSr8yQ646yUzbpE1/vwg/SxbtzAGQsZGDFqTDom22IoVuO/Fm6lk\\nKlgBlMCuiDiLi77XeZF+KY/3Q2W9HCIJ4dDxdNH8swbTRcP1my7PXKuQmbjTIKd2\\nsuXQjg7xx6xckY6fA/U7isO4GVHFVlQqU1BAVZ34tkW5xznAiAPWsWaUq88LKUtX\\n2Rm++HFqGhjrkhG5XUqF2jrrEolwV8/NlujNq5fls2mv4aZVXB+jRnve5zsNmvHX\\nz1ThNhI3zy8NxaVtW+zXscheveFNDl8jUXk06PezWWHXz00l3UhVPnKO9WTJo8C4\\n21FcQUZateQm7pTjKsfLDv07adSthtUHEaYsMzvKt9Y9eIbmjJU4ALK+lsMZ4ONS\\nIRhEDiUhvS5/dVvmehvBoHLKhdt5qOFJ7LzldMP9sDzpAgMBAAE=\\n-----END PUBLIC KEY-----'"
+            }
+          ]
         }
-      ]
-    }
 
 ### Functions
 
