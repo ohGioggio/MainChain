@@ -6,6 +6,7 @@ import os
 from Crypto.Hash import SHA512
 from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
+import random as rand
 
 
 class Wallet:
@@ -29,8 +30,13 @@ class Wallet:
         value = {
             'sender': self.address.decode(),
             'recipient': receiver.address.decode(),
-            'amount': money
+            'amount': money,
+            'timestamp': str(datetime.datetime.now())
         }
+        signature_mess = blockchain.sign_message(self.key, json.dumps(value).encode('utf-8'))
+        value['signature'] = signature_mess.hex()
+        value['signer'] = self.key.publickey().export_key(pkcs=8, format='DER').hex()
+
         if self.check_balance(-1 * money) and money >= 0:
             self.add_money(-1 * money)
             receiver.add_money(money)
@@ -107,7 +113,7 @@ class Block:
             'timestamp': self.timestamp,
             'transactions': self.transactions,
             'proof': self.proof,
-            'previous_hash': self.previous_hash
+            'previous_hash': self.previous_hash,
         }
         return block
 
@@ -139,7 +145,6 @@ class Blockchain:
             current_transactions.append(self.miner_transactions.pop(0))
 
         block = Block(len(self.chain), str(datetime.datetime.now()), current_transactions, proof, previous_hash).format_block()
-
         return block
 
     def create_block(self, proof, previous_hash):
@@ -153,17 +158,13 @@ class Blockchain:
         return self.chain[-1]
 
     # Transactions
-    def new_transaction(self, sender, recipient, amount):
-        self.current_transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
-        })
+    def new_transaction(self, values):
+        self.current_transactions.append(values)
         return self.last_block['index'] + 1 + int((len(self.current_transactions)-1) / self.block_size)
 
     def create_transaction(self, values):
         if values:
-            index = self.new_transaction(values['sender'], values['recipient'], values['amount'])
+            index = self.new_transaction(values)
             result = self.mine()
 
             response = {'message': f'Transaction will be added to the Block {index}.'}
@@ -208,7 +209,7 @@ class Blockchain:
                 data = ""
         return data
 
-    def export_chain_to_file(self, file):
+    def export_chain_to_file(self, file='data_file'):
         if self.chain_valid(self.chain):
             with open(f"{file}.json", "w") as write_file:
                 json.dump(self.chain, write_file, indent=4)
@@ -243,6 +244,16 @@ class Blockchain:
             if block['previous_hash'] != self.hash(previous_block):
                 print(block['previous_hash'], self.hash(previous_block))
                 return False
+
+            for transaction in block['transactions'][:-1]:
+                key = transaction.pop('signer')
+                signature = transaction.pop('signature')
+                result = self.verify_message(RSA.import_key(bytes.fromhex(key)), json.dumps(transaction).encode('utf-8'), bytes.fromhex(signature))
+                transaction['signature'] = signature
+                transaction['signer'] = key
+
+                if result != "Signature is valid.":
+                    return False
 
             previous_proof = previous_block['proof']
             proof = block['proof']
@@ -279,7 +290,7 @@ class Blockchain:
 
     def mine(self):
         if len(self.miner_queue) > 0 and len(self.current_transactions) >= self.block_size:
-            miner = self.miner_queue.pop(0)
+            miner = rand.choice(self.miner_queue)
         else:
             return "\nNo miner available." if len(self.miner_queue) == 0 else ""
 
