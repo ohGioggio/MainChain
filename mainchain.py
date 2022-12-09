@@ -359,5 +359,5 @@ class Blockchain:
         keys, values = list(pool.keys()), list(pool.values())
         rc = rand.choices(keys, weights=values, k=1)
         index = sum(values)/(pool[rc[0]])*(len(values)**(-2/3))
-        pool[rc[0]] = round(pool[rc[0]] * (1 + 10**(-6)*index), 8)
+        pool[rc[0]] = round(pool[rc[0]] * (10**(-6)*index), 8)
         return rc[0], pool[rc[0]]
