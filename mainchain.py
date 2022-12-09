@@ -299,11 +299,7 @@ class Blockchain:
         nblock = self.create_block(proof, previous_hash, validator)
 
         response = {
-            'message': "Forged new block.",
-            'index': nblock['index'],
-            'transactions': nblock['transactions'],
-            'proof': nblock['proof'],
-            'previous_hash': nblock['previous_hash'],
+            'message': f"Forged new Block {nblock['index']}.",
         }
 
-        return '\n' + response['message'] + str(response['index'])
+        return '\n' + response['message']
