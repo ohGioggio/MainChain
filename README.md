@@ -2,7 +2,7 @@
 
 A blockchain project that is capable of handling:
 
- - **Wallets**
+ - **[Wallets]((#wallets))**
  - **Miners**
  - **Transactions**
  - **Smart Contracts**
@@ -26,7 +26,7 @@ A blockchain project that is capable of handling:
 
 ---
 
-## [Wallets](github.com/ohGioggio/MainChain#wallets)
+## Wallets
 
 ### Detail
 
