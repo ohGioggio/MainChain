@@ -20,7 +20,7 @@ class Wallet:
     def resume(self):
         return f"{self.address.decode()} owns {self._money} $G10"
 
-    def _add_money(self, value):
+    def add_money(self, value):
         self._money = self._money + value
 
     def check_balance(self, value):
@@ -38,8 +38,8 @@ class Wallet:
         value['signer'] = self.key.publickey().export_key(pkcs=8, format='DER').hex()
 
         if self.check_balance(-1 * money) and money >= 0:
-            self._add_money(-1 * money)
-            receiver._add_money(money)
+            self.add_money(-1 * money)
+            receiver.add_money(money)
             return blockchain.create_transaction(value)
         else:
             return False
@@ -289,7 +289,7 @@ class Blockchain:
             'public': miner.pubkey.hex(),
             'reward': self._miner_reward
         }
-        miner._add_money(self._miner_reward)
+        miner.add_money(self._miner_reward)
 
         previous_block = self.last_block
         previous_proof = previous_block['proof']
