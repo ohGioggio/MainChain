@@ -11,17 +11,20 @@ import random as rand
 
 class Wallet:
     def __init__(self, file):
-        self.key, self._money, self.signatures = self.import_private_from_file(file)
+        self.key, self._money, self._stake, self.signatures = self.import_private_from_file(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8, format='DER')
         self.address = self.get_address(self.pubkey)
         self.update_info_file(file)
 
     # Payments
     def resume(self):
-        return f"{self.address.decode()} owns {self._money} $G10"
+        return f"{self.address.decode()} owns {self._money} $G10, and stakes {self._stake}."
 
     def add_money(self, value):
         self._money = self._money + value
+
+    def add_stake(self, value):
+        self._stake = self._stake + value
 
     def check_balance(self, value):
         return self._money + value >= 0
@@ -45,7 +48,7 @@ class Wallet:
             return False
 
     def update_info_file(self, file):
-        info = {'address': self.address.decode(), 'public': self.pubkey.hex(), 'balance': self._money, 'signatures': self.signatures}
+        info = {'address': self.address.decode(), 'public': self.pubkey.hex(), 'balance': self._money, 'stake': self._stake, 'signatures': self.signatures}
         with open(f"{file}.json", "w+") as write_file:
             if json.dumps(info) != write_file.read():
                 json.dump(info, write_file, indent=4)
@@ -93,9 +96,13 @@ class Wallet:
                     if len(line) > 0:
                         data = json.loads(line)
                         money = data['balance']
+                        if 'stake' not in data.keys():
+                            stake = 1
+                        else:
+                            stake = data['stake']
                         signatures = data['signatures']
             key = RSA.import_key(privkey)
-        return key, money, signatures
+        return key, money, stake, signatures
 
 
 class Block:
@@ -134,6 +141,9 @@ class Blockchain:
             self.chain_import(self.import_chain_from_file(file))
         self._miner_queue = []
         self._miner_reward = 10
+        self._hashrate = 10
+        self._validator_pool = []
+        self._validator_stake = {}
 
     def chain_import(self, chain):
         self.chain = chain
@@ -164,7 +174,8 @@ class Blockchain:
     def create_transaction(self, values):
         if values:
             index = self._new_transaction(values)
-            result = self._mine()
+            # result = self._mine()
+            result = self._validate_block()
 
             response = {'message': f'Transaction will be added to the Block {index}.'}
         else:
@@ -273,6 +284,8 @@ class Blockchain:
         return json.dumps(response, indent=2)
 
     # Mine Methods
+
+    # Proof of Work
     def add_miner(self, miner):
         self._miner_queue.append(miner)
         result = self._mine()
@@ -303,3 +316,48 @@ class Blockchain:
         }
 
         return '\n' + response['message']
+
+    # Proof of Stake
+    def _validate_block(self):
+        if len(self._validator_pool) > 0 and len(self._current_transactions) >= self._block_size:
+            winner_address, reward = self.pick_winner()
+            for validator in self._validator_pool:
+                if winner_address == validator.address.decode():
+                    winner = validator
+
+                    validator = {
+                        'address': winner_address,
+                        'public': winner.pubkey.hex(),
+                        'reward': reward
+                    }
+                    winner.add_stake(reward)
+
+                    previous_block = self.last_block
+                    previous_proof = previous_block['proof']
+                    proof = self.proof_of_work(previous_proof)
+                    previous_hash = self.hash(previous_block)
+
+                    nblock = self.create_block(proof, previous_hash, validator)
+
+                    response = {
+                        'message': f"Forged new Block {nblock['index']}.",
+                    }
+
+                    return '\n' + response['message']
+        else:
+            return "\nNo validator available." if len(self._validator_pool) == 0 else ""
+
+    def add_validator(self, validator):
+        self._validator_pool.append(validator)
+        self._validator_stake[validator.address.decode()] = 1
+        result = self._validate_block()
+
+        return f"Validator {validator.address.decode()} added to Validator Register." + result
+
+    def pick_winner(self):
+        pool = self._validator_stake
+        keys, values = list(pool.keys()), list(pool.values())
+        rc = rand.choices(keys, weights=values, k=1)
+        index = sum(values)/(pool[rc[0]])*(len(values)**(-2/3))
+        pool[rc[0]] = round(pool[rc[0]] * (1 + 10**(-6)*index), 8)
+        return rc[0], pool[rc[0]]
