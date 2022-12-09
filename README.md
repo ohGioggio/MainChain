@@ -26,7 +26,7 @@ A blockchain project that is capable of handling:
 
 ---
 
-## Wallets
+## [Wallets](github.com/ohGioggio/MainChain#wallets)
 
 ### Detail
 
