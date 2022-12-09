@@ -3,10 +3,10 @@
 A blockchain project that is capable of handling:
 
  - **[Wallets](https://github.com/ohGioggio/MainChain#wallets)**
- - **Miners**
- - **Transactions**
- - **Smart Contracts**
- - **Private data**
+ - **[Miners](https://github.com/ohGioggio/MainChain#miners)**
+ - **[Transactions](https://github.com/ohGioggio/MainChain#transactions)**
+ - **[Smart Contracts](https://github.com/ohGioggio/MainChain#smart-contracts)**
+ - **[Private data](https://github.com/ohGioggio/MainChain#private-data)**
 
 ### Functions
 
