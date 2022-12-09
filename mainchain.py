@@ -11,20 +11,20 @@ import random as rand
 
 class Wallet:
     def __init__(self, file):
-        self.key, self.money, self.signatures = self.import_private_from_file(file)
+        self.key, self._money, self.signatures = self.import_private_from_file(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8, format='DER')
         self.address = self.get_address(self.pubkey)
         self.update_info_file(file)
 
     # Payments
     def resume(self):
-        return f"{self.address.decode()} owns {self.money} $G10"
+        return f"{self.address.decode()} owns {self._money} $G10"
 
-    def add_money(self, value):
-        self.money = self.money + value
+    def _add_money(self, value):
+        self._money = self._money + value
 
     def check_balance(self, value):
-        return self.money + value >= 0
+        return self._money + value >= 0
 
     def new_payment(self, blockchain, receiver, money):
         value = {
@@ -38,14 +38,14 @@ class Wallet:
         value['signer'] = self.key.publickey().export_key(pkcs=8, format='DER').hex()
 
         if self.check_balance(-1 * money) and money >= 0:
-            self.add_money(-1 * money)
-            receiver.add_money(money)
+            self._add_money(-1 * money)
+            receiver._add_money(money)
             return blockchain.create_transaction(value)
         else:
             return False
 
     def update_info_file(self, file):
-        info = {'address': self.address.decode(), 'public': self.pubkey.hex(), 'balance': self.money, 'signatures': self.signatures}
+        info = {'address': self.address.decode(), 'public': self.pubkey.hex(), 'balance': self._money, 'signatures': self.signatures}
         with open(f"{file}.json", "w+") as write_file:
             if json.dumps(info) != write_file.read():
                 json.dump(info, write_file, indent=4)
@@ -100,22 +100,22 @@ class Wallet:
 
 class Block:
     def __init__(self, index, timestamp, transactions, proof, previous_hash, validator):
-        self.index = index
-        self.timestamp = timestamp
-        self.transactions = transactions
-        self.proof = proof
-        self.previous_hash = previous_hash
-        self.validator = validator
-        self.block = self.format_block()
+        self._index = index
+        self._timestamp = timestamp
+        self._transactions = transactions
+        self._proof = proof
+        self._previous_hash = previous_hash
+        self._validator = validator
+        self._block = self.format_block()
 
     def format_block(self):
         block = {
-            'index': self.index,
-            'timestamp': self.timestamp,
-            'transactions': self.transactions,
-            'proof': self.proof,
-            'previous_hash': self.previous_hash,
-            'validator': self.validator
+            'index': self._index,
+            'timestamp': self._timestamp,
+            'transactions': self._transactions,
+            'proof': self._proof,
+            'previous_hash': self._previous_hash,
+            'validator': self._validator
         }
         return block
 
@@ -123,32 +123,32 @@ class Block:
 class Blockchain:
     def __init__(self, file='data_file'):
         self.chain = []
-        self.current_transactions = []
-        self.block_size = 2
+        self._current_transactions = []
+        self._block_size = 2
         if not(os.path.exists(f"./{file}.json")):
-            self.genesis_block = self.new_block(0, "30/09 G10 CH41N released.")
-            print(self.genesis_block['previous_hash'], "\n")
-            self.chain.append(self.genesis_block)
+            self._genesis_block = self._new_block(0, "30/09 G10 CH41N released.")
+            print(self._genesis_block['previous_hash'], "\n")
+            self.chain.append(self._genesis_block)
             self.export_chain_to_file(file)
         else:
             self.chain_import(self.import_chain_from_file(file))
-        self.miner_queue = []
-        self.miner_reward = 10
+        self._miner_queue = []
+        self._miner_reward = 10
 
     def chain_import(self, chain):
         self.chain = chain
         return True
 
     # Blocks
-    def new_block(self, proof, previous_hash, validator=0):
-        current_transactions = self.current_transactions[0:self.block_size]
+    def _new_block(self, proof, previous_hash, validator=0):
+        current_transactions = self._current_transactions[0:self._block_size]
 
         block = Block(len(self.chain), str(datetime.datetime.now()), current_transactions, proof, previous_hash, validator).format_block()
         return block
 
     def create_block(self, proof, previous_hash, validator):
-        nblock = self.new_block(proof, previous_hash, validator)
-        self.current_transactions = self.current_transactions[self.block_size:]
+        nblock = self._new_block(proof, previous_hash, validator)
+        self._current_transactions = self._current_transactions[self._block_size:]
         self.chain.append(nblock)
         return nblock
 
@@ -157,14 +157,14 @@ class Blockchain:
         return self.chain[-1]
 
     # Transactions
-    def new_transaction(self, values):
-        self.current_transactions.append(values)
-        return self.last_block['index'] + 1 + int((len(self.current_transactions)-1) / self.block_size)
+    def _new_transaction(self, values):
+        self._current_transactions.append(values)
+        return self.last_block['index'] + 1 + int((len(self._current_transactions)-1) / self._block_size)
 
     def create_transaction(self, values):
         if values:
-            index = self.new_transaction(values)
-            result = self.mine()
+            index = self._new_transaction(values)
+            result = self._mine()
 
             response = {'message': f'Transaction will be added to the Block {index}.'}
         else:
@@ -274,22 +274,22 @@ class Blockchain:
 
     # Mine Methods
     def add_miner(self, miner):
-        self.miner_queue.append(miner)
-        result = self.mine()
+        self._miner_queue.append(miner)
+        result = self._mine()
 
         return f"Miner {miner.address.decode()} added to Miner Queue." + result
 
-    def mine(self):
-        if len(self.miner_queue) > 0 and len(self.current_transactions) >= self.block_size:
-            miner = rand.choice(self.miner_queue)
+    def _mine(self):
+        if len(self._miner_queue) > 0 and len(self._current_transactions) >= self._block_size:
+            miner = rand.choice(self._miner_queue)
         else:
-            return "\nNo miner available." if len(self.miner_queue) == 0 else ""
+            return "\nNo miner available." if len(self._miner_queue) == 0 else ""
 
         validator = {
             'public': miner.pubkey.hex(),
-            'reward': self.miner_reward
+            'reward': self._miner_reward
         }
-        miner.add_money(self.miner_reward)
+        miner._add_money(self._miner_reward)
 
         previous_block = self.last_block
         previous_proof = previous_block['proof']
