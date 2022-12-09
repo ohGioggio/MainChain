@@ -12,7 +12,7 @@ import random as rand
 class Wallet:
     def __init__(self, file):
         self.key, self.money, self.signatures = self.import_private_from_file(file)
-        self.pubkey = self.key.publickey().export_key(pkcs=8)
+        self.pubkey = self.key.publickey().export_key(pkcs=8, format='DER')
         self.address = self.get_address(self.pubkey)
         self.update_info_file(file)
 
@@ -45,7 +45,7 @@ class Wallet:
             return False
 
     def update_info_file(self, file):
-        info = {'address': self.address.decode(), 'public': self.pubkey.decode(), 'balance': self.money, 'signatures': self.signatures}
+        info = {'address': self.address.decode(), 'public': self.pubkey.hex(), 'balance': self.money, 'signatures': self.signatures}
         with open(f"{file}.json", "w+") as write_file:
             if json.dumps(info) != write_file.read():
                 json.dump(info, write_file, indent=4)
@@ -99,12 +99,13 @@ class Wallet:
 
 
 class Block:
-    def __init__(self, index, timestamp, transactions, proof, previous_hash):
+    def __init__(self, index, timestamp, transactions, proof, previous_hash, validator):
         self.index = index
         self.timestamp = timestamp
         self.transactions = transactions
         self.proof = proof
         self.previous_hash = previous_hash
+        self.validator = validator
         self.block = self.format_block()
 
     def format_block(self):
@@ -114,6 +115,7 @@ class Block:
             'transactions': self.transactions,
             'proof': self.proof,
             'previous_hash': self.previous_hash,
+            'validator': self.validator
         }
         return block
 
@@ -122,7 +124,6 @@ class Blockchain:
     def __init__(self, file='data_file'):
         self.chain = []
         self.current_transactions = []
-        self.miner_transactions = []
         self.block_size = 2
         if not(os.path.exists(f"./{file}.json")):
             self.genesis_block = self.new_block(0, "30/09 G10 CH41N released.")
@@ -139,16 +140,14 @@ class Blockchain:
         return True
 
     # Blocks
-    def new_block(self, proof, previous_hash):
+    def new_block(self, proof, previous_hash, validator=0):
         current_transactions = self.current_transactions[0:self.block_size]
-        if len(self.chain) > 0:
-            current_transactions.append(self.miner_transactions.pop(0))
 
-        block = Block(len(self.chain), str(datetime.datetime.now()), current_transactions, proof, previous_hash).format_block()
+        block = Block(len(self.chain), str(datetime.datetime.now()), current_transactions, proof, previous_hash, validator).format_block()
         return block
 
-    def create_block(self, proof, previous_hash):
-        nblock = self.new_block(proof, previous_hash)
+    def create_block(self, proof, previous_hash, validator):
+        nblock = self.new_block(proof, previous_hash, validator)
         self.current_transactions = self.current_transactions[self.block_size:]
         self.chain.append(nblock)
         return nblock
@@ -172,14 +171,6 @@ class Blockchain:
             result = ""
             response = {'message': f'Transaction failed due to lack of funds.'}
         return response['message'] + result
-
-    def new_payout(self, sender, recipient, amount):
-        self.miner_transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
-        })
-        return ""
 
     # Signatures
     @staticmethod
@@ -294,11 +285,10 @@ class Blockchain:
         else:
             return "\nNo miner available." if len(self.miner_queue) == 0 else ""
 
-        self.new_payout(
-            sender=0,
-            recipient=miner.address.decode(),
-            amount=self.miner_reward,
-        )
+        validator = {
+            'public': miner.pubkey.hex(),
+            'reward': self.miner_reward
+        }
         miner.add_money(self.miner_reward)
 
         previous_block = self.last_block
@@ -306,7 +296,8 @@ class Blockchain:
         proof = self.proof_of_work(previous_proof)
 
         previous_hash = self.hash(previous_block)
-        nblock = self.create_block(proof, previous_hash)
+
+        nblock = self.create_block(proof, previous_hash, validator)
 
         response = {
             'message': "Forged new block.",
