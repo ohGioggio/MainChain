@@ -237,6 +237,15 @@ class Blockchain:
         encoded_block = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha512(encoded_block).hexdigest()
 
+    def check_transaction(self, transaction):
+        key = transaction.pop('signer')
+        signature = transaction.pop('signature')
+        result = self.verify_message(RSA.import_key(bytes.fromhex(key)), json.dumps(transaction).encode('utf-8'), bytes.fromhex(signature))
+        transaction['signature'] = signature
+        transaction['signer'] = key
+
+        return result == "Signature is valid."
+
     def chain_valid(self, chain):
         previous_block = chain[0]
         block_index = 1
@@ -248,13 +257,7 @@ class Blockchain:
                 return False
 
             for transaction in block['transactions'][:-1]:
-                key = transaction.pop('signer')
-                signature = transaction.pop('signature')
-                result = self.verify_message(RSA.import_key(bytes.fromhex(key)), json.dumps(transaction).encode('utf-8'), bytes.fromhex(signature))
-                transaction['signature'] = signature
-                transaction['signer'] = key
-
-                if result != "Signature is valid.":
+                if not self.check_transaction(transaction):
                     return False
 
             previous_proof = previous_block['proof']
@@ -319,6 +322,11 @@ class Blockchain:
 
     # Proof of Stake
     def _validate_block(self):
+        for transaction in self._current_transactions:
+            print(self.check_transaction(transaction))
+            if not self.check_transaction(transaction):
+                self._current_transactions.pop(self._current_transactions.index(transaction))
+
         if len(self._validator_pool) > 0 and len(self._current_transactions) >= self._block_size:
             winner_address, reward = self.pick_winner()
             for validator in self._validator_pool:
@@ -331,6 +339,7 @@ class Blockchain:
                         'reward': reward
                     }
                     winner.add_stake(reward)
+                    self._validator_stake[winner_address] = winner._stake
 
                     previous_block = self.last_block
                     previous_proof = previous_block['proof']
@@ -349,7 +358,7 @@ class Blockchain:
 
     def add_validator(self, validator):
         self._validator_pool.append(validator)
-        self._validator_stake[validator.address.decode()] = 1
+        self._validator_stake[validator.address.decode()] = validator._stake
         result = self._validate_block()
 
         return f"Validator {validator.address.decode()} added to Validator Register." + result
