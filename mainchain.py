@@ -11,10 +11,11 @@ import random as rand
 
 class Wallet:
     def __init__(self, file):
+        self.file = file
         self.key, self._money, self._stake, self.signatures = self.import_private_from_file(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8, format='DER')
         self.address = self.get_address(self.pubkey)
-        self.update_info_file(file)
+        self.update_info_file(self.file)
 
     # Payments
     def resume(self):
@@ -43,6 +44,7 @@ class Wallet:
         if self.check_balance(-1 * money) and money >= 0:
             self.add_money(-1 * money)
             receiver.add_money(money)
+            self.update_info_file(self.file)
             return blockchain.create_transaction(value)
         else:
             return False
@@ -57,6 +59,7 @@ class Wallet:
         sign = {'Message': msg, 'Signature': signature, 'Signer': signer}
         if sign not in self.signatures:
             self.signatures.append(sign)
+            self.update_info_file(self.file)
 
     @staticmethod
     def get_address(public_key):
