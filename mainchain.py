@@ -24,7 +24,7 @@ class Wallet:
         self._money = self._money + value
 
     def add_stake(self, value):
-        self._stake = self._stake + value
+        self._stake = round(self._stake + value, 8)
 
     def check_balance(self, value):
         return self._money + value >= 0
@@ -82,6 +82,7 @@ class Wallet:
 
     def import_private_from_file(self, file):
         money = 0
+        stake = 1
         signatures = []
         if not(os.path.exists(f"./{file}.pem")):
             key = RSA.generate(3072)
@@ -323,7 +324,6 @@ class Blockchain:
     # Proof of Stake
     def _validate_block(self):
         for transaction in self._current_transactions:
-            print(self.check_transaction(transaction))
             if not self.check_transaction(transaction):
                 self._current_transactions.pop(self._current_transactions.index(transaction))
 
