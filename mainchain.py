@@ -343,6 +343,7 @@ class Blockchain:
                     }
                     winner.add_stake(reward)
                     self._validator_stake[winner_address] = winner._stake
+                    winner.update_info_file(winner.file)
 
                     previous_block = self.last_block
                     previous_proof = previous_block['proof']
