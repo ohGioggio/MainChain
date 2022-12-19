@@ -21,29 +21,35 @@ class Wallet:
     def resume(self):
         return f"{self.address.decode()} owns {self._money} $G10, and stakes {self._stake}."
 
-    def add_money(self, value):
+    def add_funds(self, value):
         self._money = self._money + value
 
-    def add_stake(self, value):
+    def add_shares(self, value):
         self._stake = round(self._stake + value, 8)
 
     def check_balance(self, value):
         return self._money + value >= 0
 
-    def new_payment(self, blockchain, receiver, money):
+    def create_payment_value(self, blockchain, receiver, amount):
         value = {
             'sender': self.address.decode(),
             'recipient': receiver.address.decode(),
-            'amount': money,
+            'amount': amount,
             'timestamp': str(datetime.datetime.now())
         }
         signature_mess = blockchain.sign_message(self.key, json.dumps(value).encode('utf-8'))
         value['signature'] = signature_mess.hex()
         value['signer'] = self.key.publickey().export_key(pkcs=8, format='DER').hex()
+        return value
 
-        if self.check_balance(-1 * money) and money >= 0:
-            self.add_money(-1 * money)
-            receiver.add_money(money)
+    def validate_payment(self, amount):
+        return self.check_balance(-1 * amount) and amount >= 0
+
+    def new_payment(self, blockchain, receiver, amount):
+        value = self.create_payment_value(blockchain, receiver, amount)
+        if self.validate_payment(amount):
+            self.add_funds(-1 * amount)
+            receiver.add_funds(amount)
             self.update_info_file(self.file)
             return blockchain.create_transaction(value)
         else:
@@ -79,9 +85,8 @@ class Wallet:
     # Files
     def export_private_key(self, file):
         private_key = self.key.export_key(pkcs=8)
-        file_out = open(f"{file}.pem", "wb")
-        file_out.write(private_key)
-        file_out.close()
+        with open(f"{file}.pem", "wb") as fo:
+            fo.write(private_key)
 
     def import_private_from_file(self, file):
         money = 0
@@ -309,7 +314,7 @@ class Blockchain:
             'public': miner.pubkey.hex(),
             'reward': self._miner_reward
         }
-        miner.add_money(self._miner_reward)
+        miner.add_funds(self._miner_reward)
 
         previous_block = self.last_block
         previous_proof = previous_block['proof']
@@ -341,7 +346,7 @@ class Blockchain:
                         'public': winner.pubkey.hex(),
                         'reward': reward
                     }
-                    winner.add_stake(reward)
+                    winner.add_shares(reward)
                     self._validator_stake[winner_address] = winner._stake
                     winner.update_info_file(winner.file)
 
@@ -358,7 +363,7 @@ class Blockchain:
 
                     return '\n' + response['message']
         else:
-            return "\nNo validator available." if len(self._validator_pool) == 0 else ""
+            return "\nNo validator available." if len(self._validator_pool) == 0 else "\nNo transactions in current block."
 
     def add_validator(self, validator):
         self._validator_pool.append(validator)
