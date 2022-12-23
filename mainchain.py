@@ -12,7 +12,7 @@ import random as rand
 class Wallet:
     def __init__(self, file):
         self.file = file
-        self.key, self._money, self._stake, self.signatures = self.import_private_from_file(file)
+        self.key, self._money, self._stake, self.signatures = self.import_wallet_info(file)
         self.pubkey = self.key.publickey().export_key(pkcs=8, format='DER')
         self.address = self.get_address(self.pubkey)
         self.update_info_file(self.file)
@@ -88,30 +88,62 @@ class Wallet:
         with open(f"{file}.pem", "wb") as fo:
             fo.write(private_key)
 
-    def import_private_from_file(self, file):
-        money = 0
+    def import_wallet_info(self, file):
+        """Import wallet information from a file.
+
+        If the private key file does not exist, a new private key is generated and
+        exported to a file. If the wallet info file does not exist, default values
+        for balance, stake, and signatures are used.
+
+        Args:
+            file: The file name for the wallet.
+
+        Returns:
+            A tuple containing the private key, balance, stake, and signatures for
+            the wallet.
+        """
+        balance = 0
         stake = 1
         signatures = []
-        if not(os.path.exists(f"./{file}.pem")):
+
+        # Generate a new private key if the file does not exist
+        private_key_file = f"{file}.pem"
+        if not os.path.exists(private_key_file):
             key = RSA.generate(3072)
             self.key = key
             self.export_private_key(file)
         else:
-            with open(f"{file}.pem", mode='rb') as privatefile:
-                privkey = privatefile.read()
-            if os.path.exists(f"{file}.json"):
-                with open(f"{file}.json", "r") as rf:
+            # Import the private key from the file
+            try:
+                with open(private_key_file, mode='rb') as privatefile:
+                    privkey = privatefile.read()
+            except IOError:
+                raise IOError(f"Unable to open private key file {private_key_file}")
+            try:
+                key = RSA.import_key(privkey)
+            except ValueError:
+                raise ValueError(f"Invalid private key in file {private_key_file}")
+
+        # Import wallet info from the JSON file
+        wallet_info_file = f"{file}.json"
+        if os.path.exists(wallet_info_file):
+            try:
+                with open(wallet_info_file, "r") as rf:
                     line = rf.read()
                     if len(line) > 0:
                         data = json.loads(line)
-                        money = data['balance']
+                        balance = data['balance']
                         if 'stake' not in data.keys():
                             stake = 1
                         else:
                             stake = data['stake']
                         signatures = data['signatures']
-            key = RSA.import_key(privkey)
-        return key, money, stake, signatures
+            except IOError:
+                raise IOError(f"Unable to open wallet info file {wallet_info_file}")
+            except ValueError:
+                raise ValueError(f"Invalid wallet info in file {wallet_info_file}")
+
+        return key, balance, stake, signatures
 
 
 class Block:
