@@ -30,13 +30,18 @@ class Wallet:
     def check_balance(self, value):
         return self._money + value >= 0
 
-    def create_payment_value(self, blockchain, receiver, amount):
+    def create_payment_value(self, blockchain, receiver, amount, sign=True):
         value = {
             'sender': self.address.decode(),
             'recipient': receiver.address.decode(),
             'amount': amount,
             'timestamp': str(datetime.datetime.now())
         }
+        if sign:
+            self.sign_payment(value, blockchain)
+        return value
+
+    def sign_payment(self, value, blockchain):
         signature_mess = blockchain.sign_message(self.key, json.dumps(value).encode('utf-8'))
         value['signature'] = signature_mess.hex()
         value['signer'] = self.key.publickey().export_key(pkcs=8, format='DER').hex()
